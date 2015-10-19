@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"path"
 )
@@ -89,42 +88,42 @@ type SetState struct {
 	XYDelta               []float64 `json:"xy_inc,omitempty"`
 }
 
-func (light *Light) SetName(name string) error {
+func (light *Light) SetName(name string) (map[string]interface{}, error) {
 	lightsUrl := light.bridge.baseUrl
 	lightsUrl.Path = path.Join(lightsUrl.Path, "lights", light.index)
 	var putBody bytes.Buffer
 	err := json.NewEncoder(&putBody).Encode(map[string]string{"name": name})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	setRequest, err := http.NewRequest("PUT", lightsUrl.String(), &putBody)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	resp, err := light.bridge.client.Do(setRequest)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	// Unmarshal
-	var response []map[string]map[string]string
+	var response []APIResponse
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if len(response) != 1 {
-		return errors.New("Expected one result in SetLightName response.")
+		return nil, errors.New("Expected one result in SetLightName response.")
 	}
 
-	if _, ok := response[0]["success"]; !ok {
-		return errors.New("API did not return success.")
+	if response[0].Error != nil {
+		return nil, response[0].Error
 	}
 
-	return nil
+	return response[0].Result, nil
 }
 
 func (light *Light) SetState(state SetState) (map[string]interface{}, error) {
@@ -148,7 +147,7 @@ func (light *Light) SetState(state SetState) (map[string]interface{}, error) {
 	defer resp.Body.Close()
 
 	// Unmarshal
-	var response []map[string]map[string]interface{}
+	var response []APIResponse
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
 		return nil, err
@@ -160,11 +159,10 @@ func (light *Light) SetState(state SetState) (map[string]interface{}, error) {
 
 	updateValues := make(map[string]interface{})
 	for _, responseItem := range response {
-		responseValueMap, isSuccess := responseItem["success"]
-		if !isSuccess {
-			return nil, errors.New(fmt.Sprintf("API did not return success: %+v", responseItem))
+		if responseItem.Error != nil {
+			return nil, responseItem.Error
 		}
-		for updatePath, updateValue := range responseValueMap {
+		for updatePath, updateValue := range responseItem.Result {
 			updateValues[updatePath] = updateValue
 		}
 	}

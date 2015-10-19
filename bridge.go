@@ -2,6 +2,7 @@ package hue
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -60,8 +61,17 @@ func (bridge *Bridge) GetLight(id string) (*Light, error) {
 	return &light, nil
 }
 
+type APIResponse struct {
+	Result map[string]interface{} `json:"success,omitempty"`
+	Error  *ErrorResponse         `json:"error,omitempty"`
+}
+
 type ErrorResponse struct {
 	Address     string `json:"address"`
 	Description string `json:"description"`
 	Type        int16  `json:"type"`
+}
+
+func (err ErrorResponse) Error() string {
+	return fmt.Sprintf("API did not return success (%s): %s)", err.Address, err.Description)
 }
