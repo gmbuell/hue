@@ -2,6 +2,7 @@ package hue
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -15,8 +16,37 @@ type Bridge struct {
 	baseUrl url.URL
 }
 
+type BridgeResponse struct {
+	Id         string `json:"id"`
+	InternalIP string `json:"internalipaddress"`
+	MACAddress string `json:"macaddress"`
+	Name       string `json:"name"`
+}
+
 func NewBridge(host string, user string) *Bridge {
 	return &Bridge{host: host, user: user, baseUrl: url.URL{Scheme: "http", Host: host, Path: path.Join("api", user)}}
+}
+
+func BridgeFromNUPnP(user string) (*Bridge, error) {
+	bridge := Bridge{user: user}
+	resp, err := bridge.client.Get("https://www.meethue.com/api/nupnp")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var bridgeResponses []BridgeResponse
+	err = json.NewDecoder(resp.Body).Decode(&bridgeResponses)
+	if err != nil {
+		return nil, err
+	}
+
+	// Use the first bridge
+	if len(bridgeResponses) > 0 {
+		bridge.host = bridgeResponses[0].InternalIP
+		return &bridge, nil
+	} else {
+		return nil, errors.New("No bridges returned from N-UPnP.")
+	}
 }
 
 func (bridge *Bridge) GetAllLights() (Lights, error) {
