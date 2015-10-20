@@ -28,8 +28,8 @@ func NewBridge(host string, user string) *Bridge {
 }
 
 func BridgeFromNUPnP(user string) (*Bridge, error) {
-	bridge := Bridge{user: user}
-	resp, err := bridge.client.Get("https://www.meethue.com/api/nupnp")
+	var client http.Client
+	resp, err := client.Get("https://www.meethue.com/api/nupnp")
 	if err != nil {
 		return nil, err
 	}
@@ -42,8 +42,7 @@ func BridgeFromNUPnP(user string) (*Bridge, error) {
 
 	// Use the first bridge
 	if len(bridgeResponses) > 0 {
-		bridge.host = bridgeResponses[0].InternalIP
-		return &bridge, nil
+		return NewBridge(bridgeResponses[0].InternalIP, user), nil
 	} else {
 		return nil, errors.New("No bridges returned from N-UPnP.")
 	}
