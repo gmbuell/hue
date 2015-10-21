@@ -48,7 +48,7 @@ func BridgeFromNUPnP(user string) (*Bridge, error) {
 	}
 }
 
-func (bridge *Bridge) GetAllLights() (Lights, error) {
+func (bridge *Bridge) GetAllLights() ([]Light, error) {
 	lightsUrl := bridge.baseUrl
 	lightsUrl.Path = path.Join(lightsUrl.Path, "lights")
 	resp, err := bridge.client.Get(lightsUrl.String())
@@ -58,18 +58,17 @@ func (bridge *Bridge) GetAllLights() (Lights, error) {
 	defer resp.Body.Close()
 
 	// Unmarshal
-	var lights Lights
+	var lights map[string]Light
 	err = json.NewDecoder(resp.Body).Decode(&lights)
 	if err != nil {
 		return nil, err
 	}
+	var lightsArray []Light
 	for key, val := range lights {
-		err := val.SetIndex(key)
-		if err != nil {
-			return nil, err
-		}
+		val.Index = key
+		val.Bridge = bridge
 	}
-	return lights, nil
+	return lightsArray, nil
 }
 
 func (bridge *Bridge) GetLight(id string) (*Light, error) {
@@ -82,7 +81,7 @@ func (bridge *Bridge) GetLight(id string) (*Light, error) {
 	defer resp.Body.Close()
 
 	// Unmarshal
-	light := Light{bridge: bridge, index: id}
+	light := Light{Bridge: bridge, Index: id}
 	err = json.NewDecoder(resp.Body).Decode(&light)
 	if err != nil {
 		return nil, err

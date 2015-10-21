@@ -25,8 +25,6 @@ const (
 	EFFECT_COLORLOOP = "colorloop"
 )
 
-type Lights map[string]Light
-
 type Light struct {
 	ModelId     string `json:"modelid"`
 	Name        string `json:"name"`
@@ -57,15 +55,15 @@ type Light struct {
 	UniqueId          string  `json:"uniqueid"`
 	ManufacturerName  string  `json:"manufacturername"`
 	LuminaireUniqueId string  `json:"luminaireuniqueid"`
-	bridge            *Bridge `json:"-"`
-	index             string  `json:"-"`
+	Bridge            *Bridge `json:"-"`
+	Index             string  `json:"-"`
 }
 
 func (light *Light) SetIndex(index string) error {
-	if len(light.index) > 0 {
+	if len(light.Index) > 0 {
 		return errors.New("Light already has an index.")
 	}
-	light.index = index
+	light.Index = index
 	return nil
 }
 
@@ -89,8 +87,8 @@ type SetState struct {
 }
 
 func (light *Light) SetName(name string) (map[string]interface{}, error) {
-	lightsUrl := light.bridge.baseUrl
-	lightsUrl.Path = path.Join(lightsUrl.Path, "lights", light.index)
+	lightsUrl := light.Bridge.baseUrl
+	lightsUrl.Path = path.Join(lightsUrl.Path, "lights", light.Index)
 	var putBody bytes.Buffer
 	err := json.NewEncoder(&putBody).Encode(map[string]string{"name": name})
 	if err != nil {
@@ -102,7 +100,7 @@ func (light *Light) SetName(name string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	resp, err := light.bridge.client.Do(setRequest)
+	resp, err := light.Bridge.client.Do(setRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -127,8 +125,8 @@ func (light *Light) SetName(name string) (map[string]interface{}, error) {
 }
 
 func (light *Light) SetState(state SetState) (map[string]interface{}, error) {
-	stateUrl := light.bridge.baseUrl
-	stateUrl.Path = path.Join(stateUrl.Path, "lights", light.index, "state")
+	stateUrl := light.Bridge.baseUrl
+	stateUrl.Path = path.Join(stateUrl.Path, "lights", light.Index, "state")
 	var putBody bytes.Buffer
 	err := json.NewEncoder(&putBody).Encode(state)
 	if err != nil {
@@ -140,7 +138,7 @@ func (light *Light) SetState(state SetState) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	resp, err := light.bridge.client.Do(setRequest)
+	resp, err := light.Bridge.client.Do(setRequest)
 	if err != nil {
 		return nil, err
 	}
