@@ -59,14 +59,6 @@ type Light struct {
 	Index             string  `json:"-"`
 }
 
-func (light *Light) SetIndex(index string) error {
-	if len(light.Index) > 0 {
-		return errors.New("Light already has an index.")
-	}
-	light.Index = index
-	return nil
-}
-
 type SetState struct {
 	Alert                 string    `json:"alert,omitempty"`
 	Brightness            uint8     `json:"bri,omitempty"`
