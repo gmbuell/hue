@@ -28,8 +28,7 @@ func NewBridge(host string, user string) *Bridge {
 }
 
 func BridgeFromNUPnP(user string) (*Bridge, error) {
-	var client http.Client
-	resp, err := client.Get("https://www.meethue.com/api/nupnp")
+	resp, err := http.Get("https://www.meethue.com/api/nupnp")
 	if err != nil {
 		return nil, err
 	}
