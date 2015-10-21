@@ -59,7 +59,7 @@ type Light struct {
 	Index             string  `json:"-"`
 }
 
-type SetState struct {
+type StateConfig struct {
 	Alert                 string    `json:"alert,omitempty"`
 	Brightness            uint8     `json:"bri,omitempty"`
 	ColorMode             string    `json:"colormode,omitempty"`
@@ -116,7 +116,7 @@ func (light *Light) SetName(name string) (map[string]interface{}, error) {
 	return response[0].Result, nil
 }
 
-func (light *Light) SetState(state SetState) (map[string]interface{}, error) {
+func (light *Light) SetState(state StateConfig) (map[string]interface{}, error) {
 	stateUrl := light.Bridge.baseUrl
 	stateUrl.Path = path.Join(stateUrl.Path, "lights", light.Index, "state")
 	var putBody bytes.Buffer
