@@ -66,6 +66,7 @@ func (bridge *Bridge) GetAllLights() ([]Light, error) {
 	for key, val := range lights {
 		val.Index = key
 		val.Bridge = bridge
+		lightsArray = append(lightsArray, val)
 	}
 	return lightsArray, nil
 }
