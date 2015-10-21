@@ -26,19 +26,10 @@ const (
 )
 
 type Light struct {
-	ModelId     string `json:"modelid"`
-	Name        string `json:"name"`
-	PointSymbol struct {
-		_ string `json:"1"`
-		_ string `json:"2"`
-		_ string `json:"3"`
-		_ string `json:"4"`
-		_ string `json:"5"`
-		_ string `json:"6"`
-		_ string `json:"7"`
-		_ string `json:"8"`
-	} `json:"pointsymbol"`
-	State struct {
+	ModelId     string   `json:"modelid"`
+	Name        string   `json:"name"`
+	PointSymbol struct{} `json:"pointsymbol"`
+	State       struct {
 		Alert            string    `json:"alert"`
 		Brightness       uint8     `json:"bri"`
 		ColorMode        string    `json:"colormode"`
