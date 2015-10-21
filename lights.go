@@ -50,25 +50,6 @@ type Light struct {
 	Index             string  `json:"-"`
 }
 
-type StateConfig struct {
-	Alert                 string    `json:"alert,omitempty"`
-	Brightness            uint8     `json:"bri,omitempty"`
-	ColorMode             string    `json:"colormode,omitempty"`
-	ColorTemperature      uint16    `json:"ct,omitempty"`
-	Effect                string    `json:"effect,omitempty"`
-	Hue                   uint16    `json:"hue,omitempty"`
-	On                    bool      `json:"on"`
-	Reachable             bool      `json:"reachable,omitempty"`
-	Saturation            uint8     `json:"sat,omitempty"`
-	XY                    []float64 `json:"xy,omitempty"`
-	TransitionTime        uint16    `json:"transitiontime,omitempty"`
-	BrightnessDelta       int16     `json:"bri_inc,omitempty"`
-	SaturationDelta       int16     `json:"sat_inc,omitempty"`
-	HueDelta              int16     `json:"hue_inc,omitempty"`
-	ColorTemperatureDelta int16     `json:"ct_inc,omitempty"`
-	XYDelta               []float64 `json:"xy_inc,omitempty"`
-}
-
 func (light *Light) SetName(name string) (map[string]interface{}, error) {
 	lightsUrl := light.Bridge.baseUrl
 	lightsUrl.Path = path.Join(lightsUrl.Path, "lights", light.Index)
@@ -107,10 +88,33 @@ func (light *Light) SetName(name string) (map[string]interface{}, error) {
 	return response[0].Result, nil
 }
 
-func (light *Light) SetState(state StateConfig) (map[string]interface{}, error) {
+func (light *Light) SetState(options ...func(*StateConfig) error) (map[string]interface{}, error) {
 	stateUrl := light.Bridge.baseUrl
 	stateUrl.Path = path.Join(stateUrl.Path, "lights", light.Index, "state")
 	var putBody bytes.Buffer
+	state := make(StateConfig)
+	for _, option := range options {
+		err := option(&state)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Make sure we are actually setting something relevant.
+	if len(state) == 0 {
+		return nil, nil
+	} else if len(state) == 1 {
+		if _, ok := state["transitiontime"]; ok {
+			// We are only setting the transition.
+			return nil, nil
+		}
+	} else {
+		// Make sure we do not try and turn lights on/off concurrently with other changes.
+		if _, ok := state["on"]; ok {
+			return nil, errors.New("Cannot turn light on/off concurrently with other changes.")
+		}
+	}
+
 	err := json.NewEncoder(&putBody).Encode(state)
 	if err != nil {
 		return nil, err
