@@ -76,10 +76,31 @@ func TransitionTime(time uint16) func(*StateConfig) error {
 	}
 }
 
-func XY(xy []float64) func(*StateConfig) error {
+func XY(xy [2]float64) func(*StateConfig) error {
 	return func(statePtr *StateConfig) error {
 		state := *statePtr
 		state["xy"] = xy
+		return nil
+	}
+}
+
+func Saturation(saturation uint8) func(*StateConfig) error {
+	return func(statePtr *StateConfig) error {
+		state := *statePtr
+		if saturation > 254 {
+			return errors.New(fmt.Sprintf("Invalid saturation %d > 254", saturation))
+		} else if saturation < 1 {
+			return errors.New(fmt.Sprintf("Invalid saturation %d < 1", saturation))
+		}
+		state["sat"] = saturation
+		return nil
+	}
+}
+
+func Hue(hue uint16) func(*StateConfig) error {
+	return func(statePtr *StateConfig) error {
+		state := *statePtr
+		state["hue"] = hue
 		return nil
 	}
 }

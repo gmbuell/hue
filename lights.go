@@ -154,3 +154,11 @@ func (light *Light) SetState(options ...func(*StateConfig) error) (map[string]in
 
 	return updateValues, nil
 }
+
+func (light *Light) Refresh() error {
+	light, err := light.Bridge.GetLight(light.Index)
+	if err != nil {
+		return err
+	}
+	return nil
+}
