@@ -41,7 +41,7 @@ type bridgeConfig struct {
 	UTC              string   `json:"UTC"`
 	LocalTime        string   `json:"localtime"`
 	TimeZone         string   `json:"timezone"`
-	ZigbeeChannel    string   `json:"zigbeechannel"`
+	ZigbeeChannel    uint8   `json:"zigbeechannel"`
 	TouchLink        bool     `json:"touchlink"`
 	FactoryNew       bool     `json:"factorynew"`
 	ReplacesBridgeID string   `json:"replacesbridgeid"`
