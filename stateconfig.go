@@ -5,6 +5,19 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-version"
+	"github.com/lucasb-eyer/go-colorful"
+)
+
+var (
+	GAMUT_A_RED   = [2]float64{0.704, 0.296}
+	GAMUT_A_GREEN = [2]float64{0.2151, 0.7106}
+	GAMUT_A_BLUE  = [2]float64{0.138, 0.08}
+	GAMUT_B_RED   = [2]float64{0.675, 0.322}
+	GAMUT_B_GREEN = [2]float64{0.409, 0.518}
+	GAMUT_B_BLUE  = [2]float64{0.167, 0.04}
+	GAMUT_C_RED   = [2]float64{0.675, 0.322}
+	GAMUT_C_GREEN = [2]float64{0.2151, 0.7106}
+	GAMUT_C_BLUE  = [2]float64{0.167, 0.04}
 )
 
 type StateConfig map[string]interface{}
@@ -101,6 +114,32 @@ func Hue(hue uint16) func(*StateConfig) error {
 	return func(statePtr *StateConfig) error {
 		state := *statePtr
 		state["hue"] = hue
+		return nil
+	}
+}
+
+func Color(color colorful.Color) func(*StateConfig) error {
+	return func(statePtr *StateConfig) error {
+		state := *statePtr
+		x, y, z := color.Clamped().Xyz()
+		hueX := x / (x + y + z)
+		hueY := y / (x + y + z)
+		state["xy"] = [2]float64{hueX, hueY}
+		return nil
+	}
+}
+
+func BrightnessFromColor(color colorful.Color) func(*StateConfig) error {
+	return func(statePtr *StateConfig) error {
+		state := *statePtr
+		_, y, _ := color.Clamped().Xyz()
+		brightness := y * 254
+		if brightness > 254.0 {
+			brightness = 254.0
+		} else if brightness < 1.0 {
+			brightness = 1.0
+		}
+		state["bri"] = uint8(brightness)
 		return nil
 	}
 }
